@@ -20,7 +20,7 @@ export function exportDesignSheet({ drawBack, drawSide, screenshot3D, designCode
   // 品牌行
   ctx.fillStyle = '#e8eaf0';
   ctx.font = '600 34px sans-serif';
-  ctx.fillText('壳造 KECRAFT', 48, 72);
+  ctx.fillText('KECRAFT', 48, 72);
   ctx.fillStyle = '#8a93a3';
   ctx.font = '16px sans-serif';
   ctx.fillText('手机壳定制方案 · 消费者确认用', 48, 100);
@@ -113,7 +113,7 @@ export function exportDesignSheet({ drawBack, drawSide, screenshot3D, designCode
   ctx.fillStyle = '#5c6572';
   ctx.font = '14px sans-serif';
   ctx.fillText('本图所示为设计示意，最终以设计师建模复核为准。尺寸为参考值，不作为生产依据。', 48, H - 60);
-  ctx.fillText('kezao / kecraft.com', 48, H - 36);
+  ctx.fillText('kecraft.com', 48, H - 36);
 
   // 下载
   const a = document.createElement('a');

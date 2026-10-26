@@ -68,7 +68,7 @@ function schedulePersist() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     syncURL();
-    try { localStorage.setItem('kezao-draft', JSON.stringify(state)); } catch (e) { /* 隐私模式忽略 */ }
+    try { localStorage.setItem('kecraft-draft', JSON.stringify(state)); } catch (e) { /* 隐私模式忽略 */ }
     const el = document.getElementById('saveBadge');
     if (el) { el.textContent = '草稿已保存'; }
   }, 400);
@@ -82,7 +82,7 @@ export function restore() {
   }
   // 2) 本地草稿
   try {
-    const raw = localStorage.getItem('kezao-draft');
+    const raw = localStorage.getItem('kecraft-draft');
     if (raw) { Object.assign(state, JSON.parse(raw)); return true; }
   } catch (e) { /* 忽略 */ }
   return false;
