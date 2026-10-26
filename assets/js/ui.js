@@ -230,6 +230,48 @@ function bindTheme() {
   };
 }
 
+// ---------- 左栏宽度拖拽 ----------
+const STEPS_W_KEY = 'kecraft-steps-w';
+const STEPS_W_MIN = 210, STEPS_W_MAX = 430;
+function bindColDrag() {
+  const handle = $('stepsDrag');
+  const wb = document.querySelector('.workbench');
+  if (!handle || !wb) return;
+  // 恢复上次宽度
+  const saved = parseInt(localStorage.getItem(STEPS_W_KEY), 10);
+  if (saved >= STEPS_W_MIN && saved <= STEPS_W_MAX) wb.style.setProperty('--steps-w', saved + 'px');
+
+  let startX = 0, startW = 264, dragging = false, pid = null, raf = 0;
+  const apply = () => {
+    raf = 0;
+    renderAll();   // 画布尺寸变了，2D 重算 / 3D 重新取景
+  };
+  handle.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || e.pointerType !== 'mouse') return;
+    startX = e.clientX;
+    startW = parseFloat(getComputedStyle(wb).getPropertyValue('--steps-w')) || 264;
+    dragging = true; pid = e.pointerId;
+    handle.setPointerCapture(pid);
+    document.body.classList.add('col-resizing');
+    e.preventDefault();
+  });
+  handle.addEventListener('pointermove', e => {
+    if (!dragging || e.pointerId !== pid) return;
+    const w = Math.round(Math.max(STEPS_W_MIN, Math.min(STEPS_W_MAX, startW + e.clientX - startX)));
+    wb.style.setProperty('--steps-w', w + 'px');
+    if (!raf) raf = requestAnimationFrame(apply);
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false; pid = null;
+    document.body.classList.remove('col-resizing');
+    const w = parseInt(wb.style.getPropertyValue('--steps-w'), 10);
+    if (w) localStorage.setItem(STEPS_W_KEY, String(w));
+  };
+  handle.addEventListener('pointerup', end);
+  handle.addEventListener('pointercancel', end);
+}
+
 // ---------- 初始化 ----------
 function start() {
   restore();
@@ -252,6 +294,7 @@ function start() {
   init3D($('pane3d'));
 
   bindTheme();
+  bindColDrag();
 
   // 背景主题：旧草稿可能没有 bg 字段，兜底回默认
   if (!BG_THEMES.some(t => t.key === state.bg)) state.bg = 'dots';
