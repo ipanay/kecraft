@@ -53,11 +53,22 @@ function syncDimInputs() {
     const dot = $('dot_' + key);
     if (dot) dot.style.display = state.edited[key] ? '' : 'none';
   }
-  $('dimWUnit').textContent = 'mm';
   $('dimReset').style.display = Object.values(state.edited).some(Boolean) ? '' : 'none';
   $('dimSource').textContent = state.edited.w || state.edited.h || state.edited.t
     ? `官方值 ${state.official.w} × ${state.official.h} × ${state.official.t}，可点「取回官方值」还原`
     : state.source;
+
+  // 官方补充参数（重量/屏幕/年份），没有就不显示，绝不补空数字
+  const specEl = $('phoneSpec');
+  if (specEl) {
+    const p = PHONES.find(p => p.id === state.phoneId);
+    const parts = [];
+    if (p && p.weight) parts.push(`${p.weight} g`);
+    if (p && p.screen) parts.push(p.screen);
+    if (p && p.releaseYear) parts.push(`${p.releaseYear} 年`);
+    specEl.textContent = parts.join(' · ');
+    specEl.style.display = parts.length ? '' : 'none';
+  }
 }
 
 // ---------- 壳参数 ----------

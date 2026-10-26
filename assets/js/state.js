@@ -30,7 +30,7 @@ function freshState() {
     note: '',
     modules: [],                    // {id,type,name,x,y,w,h,depth,round,color}
     selectedModuleId: null,
-    view: 'back',                   // back / side / 3d
+    view: '3d',                     // 3d / back / side —— 默认进 3D，选完机型就能看到手机
   };
 }
 

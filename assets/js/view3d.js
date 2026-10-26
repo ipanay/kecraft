@@ -13,6 +13,30 @@ import { shellRadius, rr } from './view2d.js';
 let renderer, scene, camera, controls, root;
 let phoneGroup, caseGroup, modGroup;
 let inited = false;
+let lastFitKey = '';
+let containerEl = null;
+
+// 屏幕壁纸：程序化生成，不加载任何图片文件
+function makeScreenTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 256, 512);
+  grad.addColorStop(0, '#2f6fd8');
+  grad.addColorStop(0.45, '#4da3e8');
+  grad.addColorStop(1, '#123252');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 256, 512);
+  // 一点光斑，避免看起来是纯色死板
+  const r = g.createRadialGradient(200, 120, 10, 200, 120, 220);
+  r.addColorStop(0, 'rgba(120,200,255,0.45)');
+  r.addColorStop(1, 'rgba(120,200,255,0)');
+  g.fillStyle = r;
+  g.fillRect(0, 0, 256, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 
 function shapeFromRR(w, h, r) {
   const s = new THREE.Shape();
@@ -36,6 +60,7 @@ function extrude(shape, depth) {
 }
 
 export function init3D(container) {
+  containerEl = container;
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   container.appendChild(renderer.domElement);
@@ -97,20 +122,26 @@ function build() {
   clearGroup(phoneGroup); clearGroup(caseGroup); clearGroup(modGroup);
   const s = state;
   const { w, h, t } = s.current;
-  const innerR = Math.min(s.cornerStyle === 'square' ? 2 : s.cornerR, w / 2 - 1, h / 2 - 1);
+  const innerR = Math.min(s.cornerStyle === 'square' ? 2 : s.current.cornerR, w / 2 - 1, h / 2 - 1);
   const outerR = Math.min(shellRadius(), (w + 2 * s.sideT) / 2 - 1, (h + 2 * s.sideT) / 2 - 1);
 
   // 手机本体：中心在原点，屏幕朝 +z
   const body = new THREE.Mesh(
     extrude(shapeFromRR(w, h, innerR), t),
-    new THREE.MeshStandardMaterial({ color: 0x20242b, roughness: 0.4, metalness: 0.55 })
+    new THREE.MeshStandardMaterial({ color: 0x4a5058, roughness: 0.35, metalness: 0.7 })
   );
+  body.name = 'phone-body';
   body.position.z = -t / 2;
   phoneGroup.add(body);
   const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(w - 4, h - 4),
-    new THREE.MeshStandardMaterial({ color: 0x0a0d12, roughness: 0.2, metalness: 0.7 })
+    new THREE.PlaneGeometry(w - 3.6, h - 3.6),
+    new THREE.MeshStandardMaterial({
+      map: makeScreenTexture(),
+      emissive: 0x9fc8ee, emissiveIntensity: 0.5,
+      roughness: 0.18, metalness: 0.1,
+    })
   );
+  screen.name = 'phone-screen';
   screen.position.z = t / 2 + 0.05;
   phoneGroup.add(screen);
 
@@ -119,6 +150,7 @@ function build() {
     extrude(shapeFromRR(w + 2 * s.sideT, h + 2 * s.sideT, outerR), s.backT),
     new THREE.MeshStandardMaterial({ color: new THREE.Color(s.color), roughness: 0.5, metalness: 0.15 })
   );
+  back.name = 'case-back';
   back.position.z = -t / 2 - s.backT;
   caseGroup.add(back);
 
@@ -129,6 +161,7 @@ function build() {
     extrude(ring, s.backT + t * 0.72),
     new THREE.MeshStandardMaterial({ color: new THREE.Color(s.color), roughness: 0.5, metalness: 0.15 })
   );
+  rim.name = 'case-rim';
   rim.position.z = -t / 2 - s.backT;
   caseGroup.add(rim);
 
@@ -153,16 +186,47 @@ function build() {
     modGroup.add(edge);
   }
 
-  // 前包边顶缘视觉（0.5mm lip，简化为正面一圈薄片）
+  // 前包边顶缘：只做一圈薄环，不能盖住屏幕
+  const lipRing = shapeFromRR(w + 2 * s.sideT, h + 2 * s.sideT, outerR);
+  lipRing.holes.push(shapeFromRR(w - 0.8, h - 0.8, Math.min(innerR + 0.4, outerR - 0.4)));
   const lip = new THREE.Mesh(
-    extrude(shapeFromRR(w + 2 * s.sideT, h + 2 * s.sideT, outerR).holes.length ? shapeFromRR(w + 2 * s.sideT, h + 2 * s.sideT, outerR) : shapeFromRR(w + 2 * s.sideT, h + 2 * s.sideT, outerR), 0.2),
+    extrude(lipRing, PETG_RULES.lip),
     new THREE.MeshStandardMaterial({ color: new THREE.Color(s.color), roughness: 0.5 })
   );
-  lip.position.z = t / 2 + PETG_RULES.lip;
+  lip.name = 'case-lip';
+  lip.position.z = t / 2;
   caseGroup.add(lip);
+
+  fitCamera(w, h, t, s.sideT);
+
+  // 自检：哪个几何体出现 NaN 直接点名，方便排查
+  root.traverse(o => {
+    if (!o.geometry) return;
+    if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+    if (!isFinite(o.geometry.boundingSphere?.radius)) console.warn('[KECRAFT] NaN 几何体:', o.name || o.type);
+  });
 }
 
-export function rebuild3D() { build(); }
+// 按机型尺寸自动取景：换机型才重新取景，用户手动转过之后不打断
+function fitCamera(w, h, t, sideT) {
+  const key = `${w.toFixed(1)}x${h.toFixed(1)}`;
+  if (key === lastFitKey) return;
+  lastFitKey = key;
+  const vFov = camera.fov * Math.PI / 180;
+  const needH = h + 2 * sideT + 6;
+  const needW = (w + 2 * sideT + 6) / camera.aspect;
+  const dist = (Math.max(needH, needW) / 2) / Math.tan(vFov / 2) * 1.25;
+  const dir = new THREE.Vector3(-0.30, 0.16, 1).normalize();
+  camera.position.copy(dir.multiplyScalar(dist));
+  controls.target.set(0, 0, 0);
+  controls.update();
+}
+
+export function rebuild3D() {
+  if (!inited) return;
+  if (containerEl) resize3D(containerEl);   // 从 2D 页签切回时容器刚可见，需重算尺寸
+  build();
+}
 
 export function screenshot3D() {
   if (!inited) return null;

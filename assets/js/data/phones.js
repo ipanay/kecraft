@@ -31,10 +31,19 @@ export const PHONES = [
     id: 'iphone-13-pro',
     brand: 'Apple',
     model: 'iPhone 13 Pro',
-    w: 71.5, h: 146.7, t: 7.65, cornerR: 7,
+    // 官方尺寸：宽 × 高 × 厚（Apple 技术规格 KB SP852）
+    w: 71.5, h: 146.7, t: 7.65,
+    weight: 203,              // g，官方
+    screen: '6.1 英寸 OLED 2532×1170 460ppi 120Hz',
+    body: '超瓷晶面板 / 不锈钢中框 / 亚光玻璃背板',
+    releaseYear: 2021,
+    cornerR: 7,               // 官方未公布，目视为示意值
     status: 'pending',
     statusLabel: '资料待验证',
-    source: '官方公开规格（146.7 × 71.5 × 7.65 mm）',
-    camera: { x: 10, y: 10, w: 28, h: 30 },
+    source: 'Apple 官方技术规格（宽 71.5 × 高 146.7 × 厚 7.65 mm，重 203 g）',
+    sourceUrl: 'https://support.apple.com/kb/SP852',
+    verifiedAt: '2026-10-26',
+    // 镜头区为目视估算，Apple 未公布模组尺寸，建模前需实物校准
+    camera: { x: 10, y: 10, w: 28, h: 30, estimated: true },
   },
 ];
