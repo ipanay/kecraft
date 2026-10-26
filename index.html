@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>KECRAFT · 手机壳定制工作台</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/favicon.png">
+<script>/* 主题先于 CSS 生效，避免白天模式闪一下夜间 */
+document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') || 'dark';</script>
 <link rel="stylesheet" href="assets/css/style.css">
 <script type="importmap">
 { "imports": { "three": "./libs/three.module.js" } }
@@ -12,10 +16,11 @@
 <body>
 
 <header class="topbar">
-  <div class="brand">KECRAFT <span class="en">kecraft.com</span></div>
+  <div class="brand"><img src="assets/img/logo.jpg" alt="KECRAFT" class="brandLogo">KECRAFT <span class="en">kecraft.com</span></div>
   <div class="crumb">定制工作台 / <span id="crumbModel">—</span></div>
   <div class="spacer"></div>
   <div class="save" id="saveBadge">未保存</div>
+  <button class="btn ghost" id="themeBtn" title="切换白天/夜间模式">☀️ <span class="themeTxt">白天</span></button>
   <button class="btn ghost" id="shareBtn">复制方案链接</button>
   <button class="btn primary" id="exportBtn">查看设计图</button>
 </header>

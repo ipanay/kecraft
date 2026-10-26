@@ -213,6 +213,23 @@ function renderAll() {
   if (state.view === '3d') rebuild3D();
 }
 
+// ---------- 白天/夜间主题 ----------
+const THEME_KEY = 'kecraft-theme';
+function applyTheme(t, { save = true } = {}) {
+  document.documentElement.dataset.theme = t;
+  if (save) localStorage.setItem(THEME_KEY, t);
+  const btn = $('themeBtn');
+  if (btn) btn.innerHTML = t === 'light' ? '🌙 <span class="themeTxt">夜间</span>' : '☀️ <span class="themeTxt">白天</span>';
+  // 2D 图纸线条颜色跟随主题，当前正显示 2D 视图时立即重绘
+  if (state.view === 'back' || state.view === 'side') render2D();
+}
+function bindTheme() {
+  applyTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark', { save: false });
+  $('themeBtn').onclick = () => {
+    applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+  };
+}
+
 // ---------- 初始化 ----------
 function start() {
   restore();
@@ -233,6 +250,8 @@ function start() {
   window.interaction.renderHook = renderAll;
 
   init3D($('pane3d'));
+
+  bindTheme();
 
   // 背景主题：旧草稿可能没有 bg 字段，兜底回默认
   if (!BG_THEMES.some(t => t.key === state.bg)) state.bg = 'dots';

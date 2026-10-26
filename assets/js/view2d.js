@@ -31,6 +31,30 @@ function fitScale(cw, ch, wmm, hmm) {
   return Math.min((cw - PAD * 2) / wmm, (ch - PAD * 2) / hmm);
 }
 
+// 主题调色板：跟随 html[data-theme]，绘制时实时读取
+function pal() {
+  const light = document.documentElement.dataset.theme === 'light';
+  return light ? {
+    grid: 'rgba(0,0,0,0.07)',
+    outline: 'rgba(24,98,158,0.90)',        // 图纸蓝，白天也可读
+    body: 'rgba(0,0,0,0.30)',
+    bodyFill: 'rgba(0,0,0,0.06)',
+    ruler: 'rgba(0,0,0,0.40)', rulerText: 'rgba(0,0,0,0.62)',
+    selDash: 'rgba(0,0,0,0.45)',
+    handle: '#1f2733', handleStroke: '#ffffff',
+    warn: '#a4790b', warnFill: 'rgba(226,185,59,0.14)',
+  } : {
+    grid: 'rgba(255,255,255,0.05)',
+    outline: 'rgba(150,200,255,0.85)',
+    body: 'rgba(255,255,255,0.28)',
+    bodyFill: 'rgba(255,255,255,0.10)',
+    ruler: 'rgba(255,255,255,0.35)', rulerText: 'rgba(255,255,255,0.55)',
+    selDash: 'rgba(255,255,255,0.5)',
+    handle: '#ffffff', handleStroke: null,
+    warn: '#e2b93b', warnFill: 'rgba(226,185,59,0.10)',
+  };
+}
+
 // ---------- 背面视图 ----------
 // ctx 已按 devicePixelRatio 缩放；W/H 为 CSS 像素
 export function drawBack(ctx, W, H, opts = {}) {
@@ -43,10 +67,11 @@ export function drawBack(ctx, W, H, opts = {}) {
 
   const outerR = shellRadius();
   const innerR = s.cornerStyle === 'square' ? 2 : s.current.cornerR;
+  const P = pal();
 
   // 网格（10mm）
   if (opts.grid !== false) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.strokeStyle = P.grid;
     ctx.lineWidth = 1;
     ctx.beginPath();
     for (let gx = 0; gx <= caseW + 0.1; gx += 10) { ctx.moveTo(X(gx), Y(0)); ctx.lineTo(X(gx), Y(caseH)); }
@@ -55,7 +80,7 @@ export function drawBack(ctx, W, H, opts = {}) {
   }
 
   // 壳体外轮廓（虚线）
-  ctx.strokeStyle = 'rgba(150,200,255,0.85)';
+  ctx.strokeStyle = P.outline;
   ctx.lineWidth = 1.6;
   ctx.setLineDash([7, 5]);
   rr(ctx, X(0), Y(0), caseW * scale, caseH * scale, outerR * scale);
@@ -63,7 +88,7 @@ export function drawBack(ctx, W, H, opts = {}) {
   ctx.setLineDash([]);
 
   // 手机本体（实线，代表壳内壁）
-  ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+  ctx.strokeStyle = P.body;
   ctx.lineWidth = 1;
   rr(ctx, X(s.sideT), Y(s.sideT), s.current.w * scale, s.current.h * scale, innerR * scale);
   ctx.stroke();
@@ -71,14 +96,14 @@ export function drawBack(ctx, W, H, opts = {}) {
   // 镜头区（示意）
   if (s.cameraZone) {
     const c = s.cameraZone;
-    ctx.strokeStyle = '#e2b93b';
-    ctx.fillStyle = 'rgba(226,185,59,0.10)';
+    ctx.strokeStyle = P.warn;
+    ctx.fillStyle = P.warnFill;
     ctx.lineWidth = 1.2;
     ctx.setLineDash([5, 4]);
     rr(ctx, X(s.sideT + c.x), Y(s.sideT + c.y), c.w * scale, c.h * scale, 6 * scale);
     ctx.fill(); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#e2b93b';
+    ctx.fillStyle = P.warn;
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('镜头区(示意)', X(s.sideT + c.x + c.w / 2), Y(s.sideT + c.y + c.h / 2) + 4);
@@ -104,23 +129,24 @@ export function drawBack(ctx, W, H, opts = {}) {
       mx + (m.w * scale) / 2, my + (m.h * scale) / 2 + 18);
 
     if (sel) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.strokeStyle = P.selDash;
       ctx.setLineDash([4, 4]);
       rr(ctx, mx - 4, my - 4, m.w * scale + 8, m.h * scale + 8, (m.round + 2) * scale);
       ctx.stroke();
       ctx.setLineDash([]);
       // 四角控制柄
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = P.handle;
       for (const [hx, hy] of cornerPts(mx, my, m.w * scale, m.h * scale)) {
         ctx.fillRect(hx - HANDLE, hy - HANDLE, HANDLE * 2, HANDLE * 2);
+        if (P.handleStroke) { ctx.strokeStyle = P.handleStroke; ctx.lineWidth = 1; ctx.strokeRect(hx - HANDLE, hy - HANDLE, HANDLE * 2, HANDLE * 2); }
       }
     }
   }
 
   // 标尺
   if (opts.rulers !== false) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.strokeStyle = P.ruler;
+    ctx.fillStyle = P.rulerText;
     ctx.lineWidth = 1;
     ctx.font = '10px sans-serif';
     // 左：总高
@@ -166,16 +192,17 @@ export function drawSide(ctx, W, H, opts = {}) {
   const X = mm => ox + mm * scale, Y = mm => oy + mm * scale;
 
   const outerR = shellRadius();
+  const P = pal();
 
   // 手机本体
-  ctx.fillStyle = 'rgba(255,255,255,0.10)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillStyle = P.bodyFill;
+  ctx.strokeStyle = P.body;
   ctx.lineWidth = 1;
   rr(ctx, X(s.backT), Y(s.sideT), s.current.t * scale, s.current.h * scale, Math.min(s.current.cornerR, s.current.t / 2) * scale);
   ctx.fill(); ctx.stroke();
 
   // 壳轮廓：背板 + 上下包边 + 前包边
-  ctx.strokeStyle = 'rgba(150,200,255,0.85)';
+  ctx.strokeStyle = P.outline;
   ctx.lineWidth = 1.6;
   ctx.beginPath();
   ctx.moveTo(X(0), Y(s.sideT + outerR));
@@ -187,8 +214,8 @@ export function drawSide(ctx, W, H, opts = {}) {
   ctx.stroke();
 
   // 背板厚度标注
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.strokeStyle = P.ruler;
+  ctx.fillStyle = P.rulerText;
   ctx.font = '10px sans-serif';
   ctx.beginPath();
   ctx.moveTo(X(0), Y(caseH) + 14); ctx.lineTo(X(s.backT), Y(caseH) + 14);
