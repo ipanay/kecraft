@@ -87,3 +87,68 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 
 /* 底部导航条（占位） */
 .pager { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 4px 14px; color: var(--muted); font-size: 12px; }
+
+/* ============================================
+   平板（1024 以下）：三栏收窄，先不做结构改动
+   ============================================ */
+@media (max-width: 1200px) and (min-width: 901px) {
+  .workbench { grid-template-columns: 220px 1fr 240px; }
+  .steps { padding: 10px; }
+  .props { padding: 12px; }
+}
+
+/* ============================================
+   手机（900 以下）：单列纵向流，3D 吸顶
+   结构顺序 = 顶栏 → 3D 画布（吸顶） → 步骤 → 属性/安全检查
+   ============================================ */
+@media (max-width: 900px) {
+  html { -webkit-text-size-adjust: 100%; }
+  body { display: block; overflow: auto; height: auto; min-height: 100%; }
+
+  .topbar { padding: 8px 12px; gap: 8px; }
+  .topbar .crumb, .topbar .save { display: none; }
+  .brand { font-size: 14px; letter-spacing: 1px; }
+  .brand .en { display: none; }
+  .btn { padding: 8px 12px; }
+  .btn.primary { padding: 8px 14px; }
+
+  .workbench { display: flex; flex-direction: column; }
+
+  /* 3D / 图纸区：吸顶，滚参数时始终能看见 */
+  .stage {
+    order: 0; position: sticky; top: 0; z-index: 10;
+    height: 46vh; min-height: 250px; max-height: 460px;
+    background: var(--bg); border-bottom: 1px solid var(--line);
+  }
+  .stageBar { padding: 6px 10px; }
+  .stageBar .muted { display: none; }
+  .tabs { flex: 1; }
+  .tab { flex: 1; text-align: center; padding: 9px 6px; font-size: 13px; }
+
+  /* 画布自己吃手势，避免旋转模型时页面跟着滚 */
+  .pane canvas { touch-action: none; }
+
+  .steps { order: 1; border-right: none; padding: 10px; overflow: visible; }
+  .props {
+    order: 2; border-left: none; border-top: 1px solid var(--line);
+    padding: 12px; overflow: visible;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .step { padding: 10px; margin-bottom: 10px; }
+  .stepHead { margin-bottom: 8px; }
+  .lbl { margin: 10px 0 5px; }
+
+  /* 16px 是 iOS 聚焦不自动放大的下限，别改小 */
+  input, select, textarea { font-size: 16px; padding: 9px 10px; }
+  .chk input { min-height: 0; }
+  .chk { font-size: 13px; gap: 8px; }
+  .rangeRow { gap: 10px; }
+  .rangeRow b { min-width: 38px; }
+
+  .addBtn { min-height: 44px; justify-content: center; align-items: center; }
+  .modBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .swatch { width: 32px; height: 32px; }
+  .swatches { gap: 10px; }
+  .btn.ghost.sm { padding: 9px 12px; font-size: 13px; }
+}
