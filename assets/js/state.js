@@ -31,6 +31,7 @@ function freshState() {
     modules: [],                    // {id,type,name,x,y,w,h,depth,round,color}
     selectedModuleId: null,
     view: '3d',                     // 3d / back / side —— 默认进 3D，选完机型就能看到手机
+    bg: 'dots',                     // 3D 背景：dots 网点浅灰 / dark 深色 / white 纯白
   };
 }
 

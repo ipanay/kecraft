@@ -40,6 +40,22 @@ function onPhoneChange() {
   renderAll();
 }
 
+// ---------- 3D 背景主题 ----------
+const BG_THEMES = [
+  { key: 'dots', label: '网点' },
+  { key: 'dark', label: '深色' },
+  { key: 'white', label: '纯白' },
+];
+function applyBg() {
+  const pane = $('pane3d');
+  if (!pane) return;
+  pane.classList.remove('bg-dots', 'bg-dark', 'bg-white');
+  pane.classList.add('bg-' + state.bg);
+  const t = BG_THEMES.find(x => x.key === state.bg);
+  const btn = $('bgBtn');
+  if (btn) btn.textContent = '背景 · ' + (t ? t.label : state.bg);
+}
+
 // ---------- 尺寸输入 ----------
 function bindDim(key) {
   const input = $('dim_' + key);
@@ -217,6 +233,15 @@ function start() {
   window.interaction.renderHook = renderAll;
 
   init3D($('pane3d'));
+
+  // 背景主题：旧草稿可能没有 bg 字段，兜底回默认
+  if (!BG_THEMES.some(t => t.key === state.bg)) state.bg = 'dots';
+  $('bgBtn').onclick = () => {
+    const i = BG_THEMES.findIndex(t => t.key === state.bg);
+    state.bg = BG_THEMES[(i + 1) % BG_THEMES.length].key;
+    applyBg(); notify();
+  };
+  applyBg();
 
   document.querySelectorAll('.tab').forEach(t => {
     t.onclick = () => { state.view = t.dataset.view; notify(); renderAll(); };

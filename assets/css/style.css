@@ -73,8 +73,17 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .pane { display: none; flex: 1; position: relative; min-height: 0; }
 .pane.active { display: block; }
 .pane canvas { width: 100%; height: 100%; display: block; }
-#pane3d { overflow: hidden; }
+#pane3d { overflow: hidden; transition: background 0.25s; }
 #pane3d canvas { display: block; }
+
+/* 3D 背景主题（背景由 CSS 画，canvas 保持透明） */
+#pane3d.bg-dark { background: var(--bg); }
+#pane3d.bg-dots {
+  background-color: #f0f1f4;
+  background-image: radial-gradient(circle, #c8cdd5 1.1px, transparent 1.1px);
+  background-size: 16px 16px;
+}
+#pane3d.bg-white { background: #ffffff; }
 
 /* 右栏 */
 .props { border-left: 1px solid var(--line); overflow-y: auto; padding: 14px; background: var(--panel); }
