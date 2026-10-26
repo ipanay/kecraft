@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>壳造 KECRAFT · 手机壳定制工作台</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<script type="importmap">
+{ "imports": { "three": "./libs/three.module.js" } }
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">壳造 <span class="en">KECRAFT</span></div>
+  <div class="crumb">定制工作台 / <span id="crumbModel">—</span></div>
+  <div class="spacer"></div>
+  <div class="save" id="saveBadge">未保存</div>
+  <button class="btn ghost" id="shareBtn">复制方案链接</button>
+  <button class="btn primary" id="exportBtn">查看设计图</button>
+</header>
+
+<main class="workbench">
+
+  <!-- 左栏：定制步骤 -->
+  <aside class="steps">
+    <div class="step">
+      <div class="stepHead"><span class="num">1</span>确认基础壳体</div>
+
+      <label class="lbl">机型</label>
+      <select id="phoneSelect" class="wide"></select>
+      <p class="hint" id="dimSource"></p>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">宽 mm <span class="dot" id="dot_w"></span></label>
+          <input id="dim_w" type="number" step="0.1">
+        </div>
+        <div class="field">
+          <label class="lbl">长 mm <span class="dot" id="dot_h"></span></label>
+          <input id="dim_h" type="number" step="0.1">
+        </div>
+        <div class="field">
+          <label class="lbl">厚 mm <span class="dot" id="dot_t"></span></label>
+          <input id="dim_t" type="number" step="0.1">
+        </div>
+        <div class="field">
+          <label class="lbl">圆角 R <span class="dot" id="dot_cornerR"></span></label>
+          <input id="dim_cornerR" type="number" step="0.1">
+        </div>
+      </div>
+      <button class="btn ghost sm" id="dimReset">取回官方值</button>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">背面壳厚</label>
+          <div class="rangeRow"><input id="backT" type="range" min="1" max="4" step="0.1"><b id="backTv"></b></div>
+        </div>
+        <div class="field">
+          <label class="lbl">四周壳厚</label>
+          <div class="rangeRow"><input id="sideT" type="range" min="1" max="3" step="0.1"><b id="sideTv"></b></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">壳角造型</label>
+          <select id="cornerStyle" class="wide">
+            <option value="round">圆角</option>
+            <option value="square">直角</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">按键开孔</label>
+          <select id="buttonStyle" class="wide">
+            <option value="open">开放口</option>
+            <option value="cutout">挖孔</option>
+          </select>
+        </div>
+      </div>
+      <label class="chk"><input id="bottomOpen" type="checkbox" checked> 充电口端开孔</label>
+    </div>
+
+    <div class="step">
+      <div class="stepHead"><span class="num">2</span>添加特殊需求</div>
+      <p class="hint">先选类型生成占位区，再到画布中拖拽定位。</p>
+      <div id="moduleButtons" class="modBtns"></div>
+      <button class="btn ghost sm danger" id="removeModule">删除选中避让区</button>
+    </div>
+
+    <div class="step">
+      <div class="stepHead"><span class="num">3</span>文字与外观</div>
+      <label class="lbl">壳体颜色</label>
+      <div id="colorSwatches" class="swatches"></div>
+      <label class="lbl">备注（给设计师的话）</label>
+      <textarea id="noteInput" rows="2" placeholder="例：底部左侧留出耳机线孔"></textarea>
+    </div>
+
+    <div class="step">
+      <div class="stepHead"><span class="num">4</span>确认设计图</div>
+      <p class="hint">生成确认长图后，发送给设计师即可进入人工复核。</p>
+    </div>
+
+    <div class="verifyCard">
+      <b id="verifyTitle">资料待验证</b>
+      <p id="verifyText">此机型尺寸来自公开资料，提交后设计师会人工复核，实际以实测为准。</p>
+    </div>
+  </aside>
+
+  <!-- 中间：画布 -->
+  <section class="stage">
+    <div class="stageBar">
+      <div class="tabs">
+        <button class="tab" data-view="back">背面尺寸图</button>
+        <button class="tab" data-view="side">侧边</button>
+        <button class="tab" data-view="3d">3D 预览</button>
+      </div>
+      <div class="muted">拖动避让区定位 · 拖白柄改宽高 · 网格 10mm · 吸附 0.5mm</div>
+    </div>
+
+    <div class="pane active" id="paneBack">
+      <canvas id="viewBack"></canvas>
+    </div>
+    <div class="pane" id="paneSide">
+      <canvas id="viewSide"></canvas>
+    </div>
+    <div class="pane" id="pane3d"></div>
+  </section>
+
+  <!-- 右栏：部件属性 -->
+  <aside class="props">
+    <div id="propsEmpty" class="muted pad">在画布中点击避让区，这里会显示位置与尺寸。</div>
+    <div id="propsBox" style="display:none">
+      <div class="secTitle" id="modName">—</div>
+      <div class="grid2">
+        <div class="field"><label class="lbl">距左 mm</label><input id="modX" type="number" step="0.5"></div>
+        <div class="field"><label class="lbl">距顶 mm</label><input id="modY" type="number" step="0.5"></div>
+        <div class="field"><label class="lbl">宽 mm</label><input id="modW" type="number" step="0.5"></div>
+        <div class="field"><label class="lbl">高 mm</label><input id="modH" type="number" step="0.5"></div>
+      </div>
+      <div class="field">
+        <label class="lbl">避让深度 mm（凸出壳背）</label>
+        <input id="modD" type="number" step="0.5" min="0">
+      </div>
+    </div>
+
+    <div class="secTitle" style="margin-top:14px">打印安全检查</div>
+    <p class="hint">依据 PETG 通用规则：侧边最小壁厚 1.6mm，镜头区距离 ≥ 3mm。</p>
+    <div id="safetyList"></div>
+  </aside>
+</main>
+
+<script type="module" src="assets/js/ui.js"></script>
+</body>
+</html>
