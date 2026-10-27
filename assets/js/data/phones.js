@@ -36,6 +36,7 @@ export const PHONES = [
     source: 'Apple 官方技术规格（宽 71.5 × 高 146.7 × 厚 7.65 mm，重 203 g）',
     sourceUrl: 'https://support.apple.com/kb/SP852',
     verifiedAt: '2026-10-26',
+    screenImage: 'assets/img/screen-iphone-13-pro.png',   // 屏幕贴图：原装 Sierra Blue 浅色壁纸（本地预览用）
     // 镜头区为目视估算，Apple 未公布模组尺寸，建模前需实物校准
     camera: { x: 10, y: 10, w: 28, h: 30, estimated: true },
   },

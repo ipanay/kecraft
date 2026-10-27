@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { OrbitControls } from '../../libs/OrbitControls.js';
 import { state } from './state.js';
 import { PETG_RULES } from './config.js';
+import { PHONES } from './data/phones.js';
 import { shellRadius, rr } from './view2d.js';
 
 let renderer, scene, camera, controls, root;
@@ -36,6 +37,35 @@ function makeScreenTexture() {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
+}
+
+// 真实屏幕图贴图：cover 式居中裁剪（不拉伸变形），按机型 screenImage 字段加载
+const screenTexCache = {};
+function applyCover(tex, screenAspect) {
+  const img = tex.image;
+  if (!img || !img.width) return;
+  const imgAspect = img.width / img.height;
+  if (imgAspect > screenAspect) {          // 图更宽 → 裁左右
+    tex.repeat.set(screenAspect / imgAspect, 1);
+    tex.offset.set((1 - screenAspect / imgAspect) / 2, 0);
+  } else {                                  // 图更高 → 裁上下
+    tex.repeat.set(1, imgAspect / screenAspect);
+    tex.offset.set(0, (1 - imgAspect / screenAspect) / 2);
+  }
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+}
+function getScreenTexture(imgUrl, screenAspect) {
+  if (!imgUrl) return makeScreenTexture();
+  let entry = screenTexCache[imgUrl];
+  if (!entry) {
+    const tex = new THREE.TextureLoader().load(imgUrl, t => applyCover(t, screenAspect));
+    tex.colorSpace = THREE.SRGBColorSpace;
+    entry = screenTexCache[imgUrl] = { tex, aspect: screenAspect };
+  } else if (entry.aspect !== screenAspect) {
+    entry.aspect = screenAspect;
+    applyCover(entry.tex, screenAspect);
+  }
+  return entry.tex;
 }
 
 function shapeFromRR(w, h, r) {
@@ -133,11 +163,15 @@ function build() {
   body.name = 'phone-body';
   body.position.z = -t / 2;
   phoneGroup.add(body);
+  const phoneMeta = PHONES.find(p => p.id === s.phoneId);
+  const screenAspect = (w - 3.6) / (h - 3.6);
+  const hasReal = !!(phoneMeta && phoneMeta.screenImage);   // 真实壁纸自带亮度，别再叠加发光洗白
   const screen = new THREE.Mesh(
     new THREE.PlaneGeometry(w - 3.6, h - 3.6),
     new THREE.MeshStandardMaterial({
-      map: makeScreenTexture(),
-      emissive: 0x9fc8ee, emissiveIntensity: 0.5,
+      map: getScreenTexture(phoneMeta && phoneMeta.screenImage, screenAspect),
+      emissive: hasReal ? 0x000000 : 0x9fc8ee,
+      emissiveIntensity: hasReal ? 0 : 0.5,
       roughness: 0.18, metalness: 0.1,
     })
   );
