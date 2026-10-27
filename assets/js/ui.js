@@ -9,7 +9,7 @@ import {
   addModule, removeSelectedModule, getSelectedModule, designCode, syncURL,
 } from './state.js';
 import { drawBack, drawSide, BackViewInteraction, safetyChecks } from './view2d.js';
-import { init3D, rebuild3D, screenshot3D } from './view3d.js?v=1027j';
+import { init3D, rebuild3D, screenshot3D } from './view3d.js?v=1027l';
 import { exportDesignSheet } from './design-export.js';
 
 const $ = id => document.getElementById(id);
@@ -61,13 +61,32 @@ function bindDim(key) {
   const input = $('dim_' + key);
   const lim = DIM_LIMITS[key];
   if (lim) input.title = `可填 ${lim.min}–${lim.max}mm，超出自动钳回边界`;
-  input.addEventListener('input', () => { setDim(key, input.value); renderAll(); });
-  input.addEventListener('change', () => { input.value = state.current[key]; });
+  let timer = null;
+  // 失焦/回车：解析 → 钳制 → 回写规范值；空值还原上一次有效值
+  const commit = () => {
+    clearTimeout(timer);
+    const raw = input.value.trim();
+    const v = parseFloat(raw);
+    if (raw === '' || isNaN(v)) { input.value = state.current[key]; return; }
+    setDim(key, v);                       // setDim 负责钳回边界
+    input.value = state.current[key];
+    renderAll();
+  };
+  // 输入中：允许空/半截数字，不被 syncDimInputs 覆盖；停手 350ms 再更新 3D（手机端避免每键重建卡顿）
+  input.addEventListener('input', () => {
+    const v = parseFloat(input.value);
+    clearTimeout(timer);
+    if (input.value.trim() === '' || isNaN(v)) return;
+    timer = setTimeout(() => { setDim(key, v, { clamp: false }); renderAll(); }, 350);
+  });
+  input.addEventListener('change', commit);
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
 }
 function syncDimInputs() {
   for (const key of ['w', 'h', 't', 'cornerR']) {
     const input = $('dim_' + key);
-    input.value = state.current[key];
+    if (document.activeElement !== input) input.value = state.current[key];   // 正在输入的框不覆盖
     const dot = $('dot_' + key);
     if (dot) dot.style.display = state.edited[key] ? '' : 'none';
   }

@@ -133,12 +133,13 @@ export function applyPhone(phone) {
 }
 
 // 更新尺寸字段（客户手改 → 标记 edited）
-export function setDim(key, value) {
+// clamp=false 用于输入过程中的中间态（如刚打了一位数字），不做越界钳制
+export function setDim(key, value, { clamp = true } = {}) {
   if (!(key in state.current)) return;
   const v = parseFloat(value);
-  if (isNaN(v) || v <= 0) return;
+  if (isNaN(v) || v < 0) return;
   const lim = DIM_LIMITS[key];
-  const cv = lim ? Math.max(lim.min, Math.min(lim.max, v)) : v;   // 超范围钳回边界
+  const cv = (clamp && lim) ? Math.max(lim.min, Math.min(lim.max, v)) : v;
   state.current[key] = cv;
   state.edited[key] = Math.abs(cv - state.official[key]) > 0.01;
   notify();

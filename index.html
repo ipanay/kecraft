@@ -45,19 +45,19 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
       <div class="grid2">
         <div class="field">
           <label class="lbl">宽 mm <span class="dot" id="dot_w"></span></label>
-          <input id="dim_w" type="number" step="0.1" min="50" max="120" title="可填 50–120mm">
+          <input id="dim_w" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="50" max="120" title="可填 50–120mm">
         </div>
         <div class="field">
           <label class="lbl">长 mm <span class="dot" id="dot_h"></span></label>
-          <input id="dim_h" type="number" step="0.1" min="100" max="180" title="可填 100–180mm">
+          <input id="dim_h" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="100" max="180" title="可填 100–180mm">
         </div>
         <div class="field">
           <label class="lbl">厚 mm <span class="dot" id="dot_t"></span></label>
-          <input id="dim_t" type="number" step="0.1" min="5" max="16" title="可填 5–16mm">
+          <input id="dim_t" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="5" max="16" title="可填 5–16mm">
         </div>
         <div class="field">
           <label class="lbl">圆角 R <span class="dot" id="dot_cornerR"></span></label>
-          <input id="dim_cornerR" type="number" step="0.1" min="0" max="15" title="可填 0–15mm">
+          <input id="dim_cornerR" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="0" max="15" title="可填 0–15mm">
         </div>
       </div>
       <button class="btn ghost sm" id="dimReset">取回官方值</button>
@@ -176,6 +176,6 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
   </aside>
 </main>
 
-<script type="module" src="assets/js/ui.js?v=1027i"></script>
+<script type="module" src="assets/js/ui.js?v=1027l"></script>
 </body>
 </html>

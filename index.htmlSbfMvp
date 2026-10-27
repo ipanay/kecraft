@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KECRAFT · 手机壳定制工作台</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/favicon.png">
+<script>/* 主题先于 CSS 生效，避免白天模式闪一下夜间 */
+document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') || 'dark';</script>
+<link rel="stylesheet" href="assets/css/style.css?v=1027k">
+<script type="importmap">
+{ "imports": {
+  "three": "./libs/three.module.js",
+  "three-mesh-bvh": "./libs/three-mesh-bvh.module.js",
+  "three-bvh-csg": "./libs/three-bvh-csg.module.js"
+} }
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><img src="assets/img/logo.jpg" alt="KECRAFT" class="brandLogo">KECRAFT <span class="en">kecraft.com</span></div>
+  <div class="crumb">定制工作台 / <span id="crumbModel">—</span></div>
+  <div class="spacer"></div>
+  <div class="save" id="saveBadge">未保存</div>
+  <button class="btn ghost" id="themeBtn" title="切换白天/夜间模式">☀️ <span class="themeTxt">白天</span></button>
+  <button class="btn ghost" id="shareBtn">复制方案链接</button>
+  <button class="btn primary" id="exportBtn">查看设计图</button>
+</header>
+
+<main class="workbench">
+  <div id="stepsDrag" title="拖动调整左栏宽度"></div>
+
+  <!-- 左栏：定制步骤 -->
+  <aside class="steps">
+    <div class="step">
+      <div class="stepHead"><span class="num">1</span>确认基础壳体</div>
+
+      <label class="lbl">机型</label>
+      <select id="phoneSelect" class="wide"></select>
+      <p class="hint" id="dimSource"></p>
+      <p class="hint spec" id="phoneSpec"></p>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">宽 mm <span class="dot" id="dot_w"></span></label>
+          <input id="dim_w" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="50" max="120" title="可填 50–120mm">
+        </div>
+        <div class="field">
+          <label class="lbl">长 mm <span class="dot" id="dot_h"></span></label>
+          <input id="dim_h" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="100" max="180" title="可填 100–180mm">
+        </div>
+        <div class="field">
+          <label class="lbl">厚 mm <span class="dot" id="dot_t"></span></label>
+          <input id="dim_t" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="5" max="16" title="可填 5–16mm">
+        </div>
+        <div class="field">
+          <label class="lbl">圆角 R <span class="dot" id="dot_cornerR"></span></label>
+          <input id="dim_cornerR" type="number" step="0.1" inputmode="decimal" enterkeyhint="done" min="0" max="15" title="可填 0–15mm">
+        </div>
+      </div>
+      <button class="btn ghost sm" id="dimReset">取回官方值</button>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">背面壳厚</label>
+          <div class="rangeRow"><input id="backT" type="range" min="1" max="4" step="0.1"><b id="backTv"></b></div>
+        </div>
+        <div class="field">
+          <label class="lbl">四周壳厚</label>
+          <div class="rangeRow"><input id="sideT" type="range" min="1" max="3" step="0.1"><b id="sideTv"></b></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">壳角造型</label>
+          <select id="cornerStyle" class="wide">
+            <option value="round">圆角</option>
+            <option value="square">直角</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">按键开孔</label>
+          <select id="buttonStyle" class="wide">
+            <option value="open">开放口</option>
+            <option value="cutout">挖孔</option>
+          </select>
+        </div>
+      </div>
+      <label class="chk"><input id="bottomOpen" type="checkbox" checked> 充电口端开孔</label>
+    </div>
+
+    <div class="step">
+      <div class="stepHead"><span class="num">2</span>添加特殊需求</div>
+      <p class="hint">先选类型生成占位区，再到画布中拖拽定位。</p>
+      <div id="moduleButtons" class="modBtns"></div>
+      <button class="btn ghost sm danger" id="removeModule">删除选中避让区</button>
+    </div>
+
+    <div class="step">
+      <div class="stepHead"><span class="num">3</span>文字与外观</div>
+      <label class="lbl">壳体颜色</label>
+      <div id="colorSwatches" class="swatches"></div>
+      <label class="lbl">备注（给设计师的话）</label>
+      <textarea id="noteInput" rows="2" placeholder="例：底部左侧留出耳机线孔"></textarea>
+    </div>
+
+    <div class="step">
+      <div class="stepHead"><span class="num">4</span>确认设计图</div>
+      <p class="hint">生成确认长图后发给设计师，双方看着同一张图确认方案。</p>
+    </div>
+
+  </aside>
+
+  <!-- 中间：画布 -->
+  <section class="stage">
+    <div class="stageBar">
+      <div class="tabs">
+        <button class="tab active" data-view="3d">3D 预览</button>
+        <button class="tab" data-view="back">背面尺寸图</button>
+        <button class="tab" data-view="side">侧边</button>
+      </div>
+      <button class="btn ghost sm toggle on" id="phoneBtn" title="显示/隐藏手机本体，关掉只看壳"><i class="led"></i>手机预览<b class="st">开</b></button>
+      <button class="btn ghost sm toggle on" id="caseBtn" title="显示/隐藏壳，只看裸机"><i class="led"></i>壳预览<b class="st">开</b></button>
+      <button class="btn ghost sm" id="resetCaseBtn" title="清空所有配置，回到默认普通壳">重置方案</button>
+      <button class="btn ghost sm" id="bgBtn" title="切换 3D 背景">背景 · 网点</button>
+      <button class="btn ghost sm fsBtn" id="fsBtn" title="全屏查看">⛶ 全屏</button>
+      <div class="muted">拖动避让区定位 · 拖白柄改宽高 · 网格 10mm · 吸附 0.5mm</div>
+    </div>
+
+    <div class="pane active" id="pane3d"></div>
+    <div class="pane" id="paneBack">
+      <canvas id="viewBack"></canvas>
+    </div>
+    <div class="pane" id="paneSide">
+      <canvas id="viewSide"></canvas>
+    </div>
+
+    <button class="fsExit" id="fsExit">✕ 退出全屏</button>
+  </section>
+
+  <!-- 重置方案：二级确认弹窗 -->
+  <div class="modalMask" id="resetModal" hidden>
+    <div class="modalBox">
+      <div class="modalTitle">清空所有配置？</div>
+      <p class="modalText">壳厚、颜色、避让区、备注和手改尺寸将全部恢复为默认普通壳，此操作不可撤销。</p>
+      <div class="modalBtns">
+        <button class="btn" id="resetCancel">取消</button>
+        <button class="btn dangerSolid" id="resetConfirm">确认清空</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右栏：部件属性 -->
+  <aside class="props">
+    <div id="propsEmpty" class="muted pad">在画布中点击避让区，这里会显示位置与尺寸。</div>
+    <div id="propsBox" style="display:none">
+      <div class="secTitle" id="modName">—</div>
+      <div class="grid2">
+        <div class="field"><label class="lbl">距左 mm</label><input id="modX" type="number" step="0.5"></div>
+        <div class="field"><label class="lbl">距顶 mm</label><input id="modY" type="number" step="0.5"></div>
+        <div class="field"><label class="lbl">宽 mm</label><input id="modW" type="number" step="0.5"></div>
+        <div class="field"><label class="lbl">高 mm</label><input id="modH" type="number" step="0.5"></div>
+      </div>
+      <div class="field">
+        <label class="lbl">避让深度 mm（凸出壳背）</label>
+        <input id="modD" type="number" step="0.5" min="0">
+      </div>
+    </div>
+
+    <div class="secTitle" style="margin-top:14px">打印安全检查</div>
+    <p class="hint">依据 PETG 通用规则：侧边最小壁厚 1.6mm，镜头区距离 ≥ 3mm。</p>
+    <div id="safetyList"></div>
+  </aside>
+</main>
+
+<script type="module" src="assets/js/ui.js?v=1027i"></script>
+</body>
+</html>

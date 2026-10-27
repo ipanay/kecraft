@@ -43,6 +43,7 @@ function makeScreenTexture() {
 
 // 真实屏幕图贴图：cover 式居中裁剪（不拉伸变形），按机型 screenImage 字段加载
 const screenTexCache = {};
+let currentScreenImg = null;                 // 当前机型用的壁纸 URL（加载完成后判断是否需要重建）
 function applyCover(tex, screenAspect) {
   const img = tex.image;
   if (!img || !img.width) return;
@@ -58,16 +59,23 @@ function applyCover(tex, screenAspect) {
 }
 function getScreenTexture(imgUrl, screenAspect) {
   if (!imgUrl) return makeScreenTexture();
+  currentScreenImg = imgUrl;
   let entry = screenTexCache[imgUrl];
-  if (!entry) {
-    const tex = new THREE.TextureLoader().load(imgUrl, t => applyCover(t, screenAspect));
-    tex.colorSpace = THREE.SRGBColorSpace;
-    entry = screenTexCache[imgUrl] = { tex, aspect: screenAspect };
-  } else if (entry.aspect !== screenAspect) {
-    entry.aspect = screenAspect;
-    applyCover(entry.tex, screenAspect);
+  if (!entry) entry = screenTexCache[imgUrl] = { tex: null, aspect: screenAspect, loading: false };
+  if (entry.tex) {                          // 已加载完成：直接用缓存贴图
+    if (entry.aspect !== screenAspect) { entry.aspect = screenAspect; applyCover(entry.tex, screenAspect); }
+    return entry.tex;
   }
-  return entry.tex;
+  if (!entry.loading) {                     // 首次：后台下载，下载完自动重建一次屏幕
+    entry.loading = true;
+    new THREE.TextureLoader().load(imgUrl, t => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      entry.tex = t;
+      applyCover(t, entry.aspect);
+      if (currentScreenImg === imgUrl) rebuild3D();   // 图到了且还在看这台机型 → 自动换上，不用手动刷新
+    });
+  }
+  return makeScreenTexture();               // 下载中：先用程序化渐变占位
 }
 
 function shapeFromRR(w, h, r) {
