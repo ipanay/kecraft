@@ -176,7 +176,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 
   .topbar { padding: 8px 12px; gap: 8px; }
   .topbar .crumb, .topbar .save { display: none; }
-  .topbar #themeBtn { padding: 8px 10px; }
+  .topbar .btn { white-space: nowrap; }
+  .topbar #shareBtn, .topbar #exportBtn { padding: 8px 10px; font-size: 12px; }
   .topbar #themeBtn .themeTxt { display: none; }
   .brand { font-size: 14px; letter-spacing: 1px; }
   .brand .en { display: none; }
@@ -192,10 +193,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     height: 46vh; min-height: 250px; max-height: 460px;
     background: var(--bg); border-bottom: 1px solid var(--line);
   }
-  .stageBar { padding: 6px 10px; }
+  .stageBar {
+    padding: 6px 10px;
+    flex-wrap: wrap; gap: 8px; justify-content: flex-start;
+    row-gap: 6px;
+  }
   .stageBar .muted { display: none; }
-  .tabs { flex: 1; }
+  .stageBar .btn { white-space: nowrap; min-height: 38px; }
+  /* 第 1 行：三个视图 tab 占满整行 */
+  .tabs { order: -1; flex: 1 1 100%; }
   .tab { flex: 1; text-align: center; padding: 9px 6px; font-size: 13px; white-space: nowrap; }
+  /* 第 2 行起：开关 + 功能按钮自然换行，禁止被压成竖排 */
+  .stageBar > .btn { flex: 0 0 auto; }
 
   /* 画布自己吃手势，避免旋转模型时页面跟着滚 */
   .pane canvas { touch-action: none; }
