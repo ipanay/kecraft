@@ -1,6 +1,5 @@
 // ============================================
 // 机型库（首版）
-// status: 'verified' 已实物验证 / 'pending' 资料待验证 / 'unsupported' 暂不支持
 // source 必填：每个尺寸必须能指到来源，没有来源的不许入库
 // camera 为示意位置，建模前需实物校准
 // ============================================
@@ -11,9 +10,7 @@ export const PHONES = [
     brand: 'Sony',
     model: 'Xperia 1 V',
     w: 75, h: 161.4, t: 8.6, cornerR: 8,
-    status: 'pending',
-    statusLabel: '资料待验证',
-    source: '官方公开资料（161.4 × 75 × 8.6 mm），实物待验证',
+    source: '官方公开资料（161.4 × 75 × 8.6 mm）',
     // 镜头区示意位置（距壳左上角 mm），建模前需校准
     camera: { x: 11, y: 11, w: 30, h: 46 },
   },
@@ -22,8 +19,6 @@ export const PHONES = [
     brand: '荣耀',
     model: 'Power 2',
     w: 76.3, h: 162.1, t: 7.98, cornerR: 9,
-    status: 'pending',
-    statusLabel: '资料待验证',
     source: '用户提供（162.1 × 76.3 × 7.98 mm）',
     camera: null,
   },
@@ -38,8 +33,6 @@ export const PHONES = [
     body: '超瓷晶面板 / 不锈钢中框 / 亚光玻璃背板',
     releaseYear: 2021,
     cornerR: 7,               // 官方未公布，目视为示意值
-    status: 'pending',
-    statusLabel: '资料待验证',
     source: 'Apple 官方技术规格（宽 71.5 × 高 146.7 × 厚 7.65 mm，重 203 g）',
     sourceUrl: 'https://support.apple.com/kb/SP852',
     verifiedAt: '2026-10-26',

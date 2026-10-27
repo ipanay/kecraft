@@ -73,7 +73,7 @@ export function exportDesignSheet({ drawBack, drawSide, screenshot3D, designCode
 
   // 参数摘要
   const rows = [
-    ['机型', `${state.brand} ${state.model}（${state.statusLabel}）`],
+    ['机型', `${state.brand} ${state.model}`],
     ['机身 长×宽×厚', `${state.current.h} × ${state.current.w} × ${state.current.t} mm`],
     ['壳厚 背面 / 四周', `${state.backT.toFixed(1)} / ${state.sideT.toFixed(1)} mm`],
     ['壳角造型', state.cornerStyle === 'round' ? `圆角 R${state.current.cornerR}` : '直角'],

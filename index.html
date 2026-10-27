@@ -105,13 +105,9 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
 
     <div class="step">
       <div class="stepHead"><span class="num">4</span>确认设计图</div>
-      <p class="hint">生成确认长图后，发送给设计师即可进入人工复核。</p>
+      <p class="hint">生成确认长图后发给设计师，双方看着同一张图确认方案。</p>
     </div>
 
-    <div class="verifyCard">
-      <b id="verifyTitle">资料待验证</b>
-      <p id="verifyText">此机型尺寸来自公开资料，提交后设计师会人工复核，实际以实测为准。</p>
-    </div>
   </aside>
 
   <!-- 中间：画布 -->
@@ -123,6 +119,7 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
         <button class="tab" data-view="side">侧边</button>
       </div>
       <button class="btn ghost sm" id="bgBtn" title="切换 3D 背景">背景 · 网点</button>
+      <button class="btn ghost sm fsBtn" id="fsBtn" title="全屏查看">⛶ 全屏</button>
       <div class="muted">拖动避让区定位 · 拖白柄改宽高 · 网格 10mm · 吸附 0.5mm</div>
     </div>
 
@@ -133,6 +130,8 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
     <div class="pane" id="paneSide">
       <canvas id="viewSide"></canvas>
     </div>
+
+    <button class="fsExit" id="fsExit">✕ 退出全屏</button>
   </section>
 
   <!-- 右栏：部件属性 -->

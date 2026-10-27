@@ -19,8 +19,6 @@ function freshState() {
     current: { w: phone.w, h: phone.h, t: phone.t, cornerR: phone.cornerR },
     edited: { w: false, h: false, t: false, cornerR: false },
     source: phone.source,
-    status: phone.status,
-    statusLabel: phone.statusLabel,
     backT: CASE_DEFAULTS.backT,
     sideT: CASE_DEFAULTS.sideT,
     cornerStyle: 'round',           // round 圆角 / square 直角
@@ -122,8 +120,6 @@ export function applyPhone(phone) {
   state.current = { w: phone.w, h: phone.h, t: phone.t, cornerR: phone.cornerR };
   state.edited = { w: false, h: false, t: false, cornerR: false };
   state.source = phone.source;
-  state.status = phone.status;
-  state.statusLabel = phone.statusLabel;
 }
 
 // 更新尺寸字段（客户手改 → 标记 edited）

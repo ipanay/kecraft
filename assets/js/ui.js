@@ -23,7 +23,7 @@ function fillPhoneSelect() {
     const g = document.createElement('optgroup');
     g.label = b;
     PHONES.filter(p => p.brand === b).forEach(p => {
-      const o = new Option(`${p.model}（${p.statusLabel}）`, p.id);
+      const o = new Option(p.model, p.id);
       g.appendChild(o);
     });
     sel.appendChild(g);
@@ -195,10 +195,6 @@ function cameraZoneOrNull() {
 
 function syncMeta() {
   $('crumbModel').textContent = `${state.brand} ${state.model}`;
-  $('verifyTitle').textContent = state.statusLabel;
-  $('verifyText').textContent = state.status === 'verified'
-    ? '此机型已实物验证，可直接下单定制。'
-    : '此机型尺寸来自公开资料，提交后设计师会人工复核，实际以实测为准。';
 }
 
 function renderAll() {
@@ -272,6 +268,23 @@ function bindColDrag() {
   handle.addEventListener('pointercancel', end);
 }
 
+// ---------- 3D 区全屏（类切换，iOS 兼容） ----------
+function bindFullscreen() {
+  const stage = document.querySelector('.stage');
+  const fsBtn = $('fsBtn'), exitBtn = $('fsExit');
+  if (!stage || !fsBtn || !exitBtn) return;
+  const render = () => requestAnimationFrame(renderAll);   // 容器尺寸变了，画布重算
+  const toggle = force => {
+    const on = force !== undefined ? force : !stage.classList.contains('fs');
+    stage.classList.toggle('fs', on);
+    fsBtn.textContent = on ? '⛶ 退出全屏' : '⛶ 全屏';
+    render();
+  };
+  fsBtn.onclick = () => toggle();
+  exitBtn.onclick = () => toggle(false);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
+}
+
 // ---------- 初始化 ----------
 function start() {
   restore();
@@ -295,6 +308,7 @@ function start() {
 
   bindTheme();
   bindColDrag();
+  bindFullscreen();
 
   // 背景主题：旧草稿可能没有 bg 字段，兜底回默认
   if (!BG_THEMES.some(t => t.key === state.bg)) state.bg = 'dots';
