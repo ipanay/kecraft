@@ -9,6 +9,14 @@ import { CASE_DEFAULTS, URL_KEYS } from './config.js';
 let listeners = [];
 let saveTimer = null;
 
+// 手填尺寸的合法范围（mm）：输入框 min/max 与 setDim 钳制共用这一份
+export const DIM_LIMITS = {
+  w: { min: 50, max: 120 },        // 宽：覆盖小屏机到小平板
+  h: { min: 100, max: 180 },       // 长
+  t: { min: 5, max: 16 },          // 厚：常规机到折叠屏
+  cornerR: { min: 0, max: 15 },    // 圆角
+};
+
 function freshState() {
   const phone = PHONES[0];
   return {
@@ -30,6 +38,8 @@ function freshState() {
     selectedModuleId: null,
     view: '3d',                     // 3d / back / side —— 默认进 3D，选完机型就能看到手机
     bg: 'dots',                     // 3D 背景：dots 网点浅灰 / dark 深色 / white 纯白
+    showCase: true,                 // 壳预览开关：true 壳包在手机上 / false 只看裸机
+    showPhone: true,                // 手机预览开关：true 显示手机本体 / false 只看壳
   };
 }
 
@@ -127,8 +137,10 @@ export function setDim(key, value) {
   if (!(key in state.current)) return;
   const v = parseFloat(value);
   if (isNaN(v) || v <= 0) return;
-  state.current[key] = v;
-  state.edited[key] = Math.abs(v - state.official[key]) > 0.01;
+  const lim = DIM_LIMITS[key];
+  const cv = lim ? Math.max(lim.min, Math.min(lim.max, v)) : v;   // 超范围钳回边界
+  state.current[key] = cv;
+  state.edited[key] = Math.abs(cv - state.official[key]) > 0.01;
   notify();
 }
 

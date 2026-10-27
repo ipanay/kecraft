@@ -8,9 +8,13 @@
 <link rel="apple-touch-icon" href="assets/img/favicon.png">
 <script>/* 主题先于 CSS 生效，避免白天模式闪一下夜间 */
 document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') || 'dark';</script>
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=1027i">
 <script type="importmap">
-{ "imports": { "three": "./libs/three.module.js" } }
+{ "imports": {
+  "three": "./libs/three.module.js",
+  "three-mesh-bvh": "./libs/three-mesh-bvh.module.js",
+  "three-bvh-csg": "./libs/three-bvh-csg.module.js"
+} }
 </script>
 </head>
 <body>
@@ -41,19 +45,19 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
       <div class="grid2">
         <div class="field">
           <label class="lbl">宽 mm <span class="dot" id="dot_w"></span></label>
-          <input id="dim_w" type="number" step="0.1">
+          <input id="dim_w" type="number" step="0.1" min="50" max="120" title="可填 50–120mm">
         </div>
         <div class="field">
           <label class="lbl">长 mm <span class="dot" id="dot_h"></span></label>
-          <input id="dim_h" type="number" step="0.1">
+          <input id="dim_h" type="number" step="0.1" min="100" max="180" title="可填 100–180mm">
         </div>
         <div class="field">
           <label class="lbl">厚 mm <span class="dot" id="dot_t"></span></label>
-          <input id="dim_t" type="number" step="0.1">
+          <input id="dim_t" type="number" step="0.1" min="5" max="16" title="可填 5–16mm">
         </div>
         <div class="field">
           <label class="lbl">圆角 R <span class="dot" id="dot_cornerR"></span></label>
-          <input id="dim_cornerR" type="number" step="0.1">
+          <input id="dim_cornerR" type="number" step="0.1" min="0" max="15" title="可填 0–15mm">
         </div>
       </div>
       <button class="btn ghost sm" id="dimReset">取回官方值</button>
@@ -118,6 +122,9 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
         <button class="tab" data-view="back">背面尺寸图</button>
         <button class="tab" data-view="side">侧边</button>
       </div>
+      <button class="btn ghost sm toggle on" id="phoneBtn" title="显示/隐藏手机本体，关掉只看壳"><i class="led"></i>手机预览<b class="st">开</b></button>
+      <button class="btn ghost sm toggle on" id="caseBtn" title="显示/隐藏壳，只看裸机"><i class="led"></i>壳预览<b class="st">开</b></button>
+      <button class="btn ghost sm" id="resetCaseBtn" title="清空所有配置，回到默认普通壳">重置方案</button>
       <button class="btn ghost sm" id="bgBtn" title="切换 3D 背景">背景 · 网点</button>
       <button class="btn ghost sm fsBtn" id="fsBtn" title="全屏查看">⛶ 全屏</button>
       <div class="muted">拖动避让区定位 · 拖白柄改宽高 · 网格 10mm · 吸附 0.5mm</div>
@@ -133,6 +140,18 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
 
     <button class="fsExit" id="fsExit">✕ 退出全屏</button>
   </section>
+
+  <!-- 重置方案：二级确认弹窗 -->
+  <div class="modalMask" id="resetModal" hidden>
+    <div class="modalBox">
+      <div class="modalTitle">清空所有配置？</div>
+      <p class="modalText">壳厚、颜色、避让区、备注和手改尺寸将全部恢复为默认普通壳，此操作不可撤销。</p>
+      <div class="modalBtns">
+        <button class="btn" id="resetCancel">取消</button>
+        <button class="btn dangerSolid" id="resetConfirm">确认清空</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 右栏：部件属性 -->
   <aside class="props">
@@ -157,6 +176,6 @@ document.documentElement.dataset.theme = localStorage.getItem('kecraft-theme') |
   </aside>
 </main>
 
-<script type="module" src="assets/js/ui.js"></script>
+<script type="module" src="assets/js/ui.js?v=1027i"></script>
 </body>
 </html>

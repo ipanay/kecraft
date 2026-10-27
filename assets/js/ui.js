@@ -5,11 +5,11 @@
 import { PHONES } from './data/phones.js';
 import { MODULE_TYPES, CASE_COLORS, PETG_RULES, CASE_DEFAULTS } from './config.js';
 import {
-  state, subscribe, notify, restore, applyPhone, setDim, resetDims,
+  state, subscribe, notify, restore, applyPhone, setDim, resetDims, DIM_LIMITS,
   addModule, removeSelectedModule, getSelectedModule, designCode, syncURL,
 } from './state.js';
 import { drawBack, drawSide, BackViewInteraction, safetyChecks } from './view2d.js';
-import { init3D, rebuild3D, screenshot3D } from './view3d.js';
+import { init3D, rebuild3D, screenshot3D } from './view3d.js?v=1027j';
 import { exportDesignSheet } from './design-export.js';
 
 const $ = id => document.getElementById(id);
@@ -59,6 +59,8 @@ function applyBg() {
 // ---------- 尺寸输入 ----------
 function bindDim(key) {
   const input = $('dim_' + key);
+  const lim = DIM_LIMITS[key];
+  if (lim) input.title = `可填 ${lim.min}–${lim.max}mm，超出自动钳回边界`;
   input.addEventListener('input', () => { setDim(key, input.value); renderAll(); });
   input.addEventListener('change', () => { input.value = state.current[key]; });
 }
@@ -228,7 +230,7 @@ function bindTheme() {
 
 // ---------- 左栏宽度拖拽 ----------
 const STEPS_W_KEY = 'kecraft-steps-w';
-const STEPS_W_MIN = 210, STEPS_W_MAX = 430;
+const STEPS_W_MIN = 210, STEPS_W_MAX = 560;
 function bindColDrag() {
   const handle = $('stepsDrag');
   const wb = document.querySelector('.workbench');
@@ -266,6 +268,60 @@ function bindColDrag() {
   };
   handle.addEventListener('pointerup', end);
   handle.addEventListener('pointercancel', end);
+}
+
+// ---------- 壳预览开关 / 一键重置 ----------
+function bindPhoneToggle() {
+  const btn = $('phoneBtn');
+  if (!btn) return;
+  const sync = () => {
+    const on = state.showPhone !== false;
+    btn.classList.toggle('on', on);
+    btn.classList.toggle('off', !on);
+    btn.innerHTML = `<i class="led"></i>手机预览<b class="st">${on ? '开' : '关'}</b>`;
+  };
+  btn.onclick = () => { state.showPhone = !(state.showPhone !== false); sync(); notify(); renderAll(); };
+  sync();
+}
+function bindCaseToggle() {
+  const btn = $('caseBtn');
+  if (!btn) return;
+  const sync = () => {
+    const on = state.showCase !== false;
+    btn.classList.toggle('on', on);
+    btn.classList.toggle('off', !on);
+    btn.innerHTML = `<i class="led"></i>壳预览<b class="st">${on ? '开' : '关'}</b>`;
+  };
+  btn.onclick = () => { state.showCase = !(state.showCase !== false); sync(); notify(); renderAll(); };
+  sync();
+}
+function bindResetCase() {
+  const btn = $('resetCaseBtn');
+  const modal = $('resetModal');
+  if (!btn || !modal) return;
+  const doReset = () => {
+    // 只保留一个默认普通壳：壳参数回默认、清空避让区/备注/手改尺寸，机型不动
+    state.backT = CASE_DEFAULTS.backT;
+    state.sideT = CASE_DEFAULTS.sideT;
+    state.cornerStyle = 'round';
+    state.bottomOpen = true;
+    state.buttonStyle = 'open';
+    state.color = '#2f3b47';
+    state.note = '';
+    state.modules = [];
+    state.selectedModuleId = null;
+    state.current = { ...state.official };
+    state.edited = { w: false, h: false, t: false, cornerR: false };
+    $('noteInput').value = '';
+    markSwatch(state.color);
+    notify(); renderAll();
+  };
+  btn.onclick = () => { modal.hidden = false; };
+  $('resetCancel').onclick = () => { modal.hidden = true; };
+  $('resetConfirm').onclick = () => { modal.hidden = true; doReset(); };
+  // 点遮罩空白处 / Esc 关闭
+  modal.addEventListener('click', e => { if (e.target === modal) modal.hidden = true; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) modal.hidden = true; });
 }
 
 // ---------- 3D 区全屏（类切换，iOS 兼容） ----------
@@ -309,6 +365,9 @@ function start() {
   bindTheme();
   bindColDrag();
   bindFullscreen();
+  bindCaseToggle();
+  bindPhoneToggle();
+  bindResetCase();
 
   // 背景主题：旧草稿可能没有 bg 字段，兜底回默认
   if (!BG_THEMES.some(t => t.key === state.bg)) state.bg = 'dots';

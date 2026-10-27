@@ -39,5 +39,18 @@ export const PHONES = [
     screenImage: 'assets/img/screen-iphone-13-pro.png',   // 屏幕贴图：原装 Sierra Blue 浅色壁纸（本地预览用）
     // 镜头区为目视估算，Apple 未公布模组尺寸，建模前需实物校准
     camera: { x: 10, y: 10, w: 28, h: 30, estimated: true },
+    // 摄像头模组 3D 视觉建模（示意，非实测）：模组 + 3 镜头 + 闪光灯 + LiDAR
+    // 坐标均相对模组左上角（mm），仅追求"看得出是 13 Pro"，不追求 0.1mm 精度
+    cameraModule: {
+      x: 7, y: 9,               // 模组左上角相对手机左上角（mm，示意）
+      w: 36, h: 38, round: 12, depth: 2.5, estimated: true,
+      lenses: [
+        { x: 11.5, y: 11, r: 7.2 },
+        { x: 11.5, y: 28.5, r: 7.2 },
+        { x: 25, y: 18.5, r: 7.2 },
+      ],
+      flash: { x: 29.5, y: 7.5, r: 2.8 },
+      lidar: { x: 29.5, y: 31, r: 3.2 },
+    },
   },
 ];

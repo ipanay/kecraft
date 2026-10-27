@@ -41,6 +41,32 @@ body {
 .btn.ghost.sm { padding: 4px 10px; font-size: 12px; }
 .btn.danger:hover { border-color: var(--bad); color: var(--bad); }
 
+/* 显隐开关按钮（手机预览 / 壳预览）：开=实心强调色+亮灯，关=虚线灰底+暗灯，一眼能分 */
+.btn.toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap; flex: none;
+  font-weight: 600; transition: background .15s, border-color .15s, color .15s;
+}
+.btn.toggle .led {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--dim); transition: background .15s, box-shadow .15s;
+}
+.btn.toggle .st {
+  font-style: normal; font-size: 11px; line-height: 1.4; padding: 0 6px;
+  border-radius: 999px; background: var(--panel2); color: var(--muted);
+}
+.btn.toggle.on {
+  background: var(--accent); border-color: var(--accent); color: var(--primary-ink);
+}
+.btn.toggle.on .led { background: var(--primary-ink); box-shadow: 0 0 0 3px rgba(255,255,255,0.35); }
+.btn.toggle.on .st { background: rgba(0,0,0,0.22); color: var(--primary-ink); }
+.btn.toggle.off {
+  background: transparent; border-style: dashed; color: var(--muted);
+}
+.btn.toggle.off .led { background: transparent; box-shadow: inset 0 0 0 1.5px var(--dim); }
+.btn.toggle.off .st { background: transparent; box-shadow: inset 0 0 0 1px var(--line2); color: var(--dim); }
+.btn.toggle.off:hover { color: var(--text); border-color: var(--accent); }
+
 /* 三栏 */
 .workbench { flex: 1; display: grid; grid-template-columns: var(--steps-w, 264px) 1fr 292px; min-height: 0; position: relative; }
 
@@ -198,3 +224,26 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
   .swatches { gap: 10px; }
   .btn.ghost.sm { padding: 9px 12px; font-size: 13px; }
 }
+
+/* 重置方案确认弹窗 */
+.modalMask {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(6, 9, 14, 0.62);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modalMask[hidden] { display: none; }
+.modalBox {
+  width: min(360px, calc(100vw - 48px));
+  background: var(--panel); border: 1px solid var(--line2);
+  border-radius: 14px; padding: 20px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+}
+.modalTitle { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.modalText { color: var(--muted); font-size: 12.5px; line-height: 1.7; margin-bottom: 18px; }
+.modalBtns { display: flex; gap: 10px; justify-content: flex-end; }
+.btn.dangerSolid {
+  background: var(--bad); border-color: var(--bad);
+  color: #fff; font-weight: 600;
+}
+.btn.dangerSolid:hover { filter: brightness(1.1); }
